@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gazete Hacettepe — Haber Web Servisi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --ink: #1a1410;
+      --red: #c0392b;
+      --red-dark: #922b21;
+      --cream: #fdf8f0;
+      --gray: #7a6e64;
+      --border: #d4c9b8;
+      --code-bg: #1e1a16;
+      --code-text: #e8d5b0;
+      --green: #1a6b3c;
+      --blue: #1a3a6b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── Masthead ── */
+    .masthead {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 0;
+      border-bottom: 4px solid var(--red);
+    }
+    .masthead-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 32px 20px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .masthead-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .masthead-title span { color: var(--red); }
+    .masthead-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #b0a898;
+      margin-top: 6px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .masthead-badge {
+      background: var(--red);
+      color: white;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 14px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* ── Section titles ── */
+    .section-rule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-rule h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .section-rule::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: var(--ink);
+    }
+
+    /* ── Try It Box ── */
+    .try-box {
+      background: var(--cream);
+      border: 2px solid var(--ink);
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+    .try-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .try-box h3::before {
+      content: '';
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      background: var(--red);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .controls select,
+    .controls input {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      background: white;
+      color: var(--ink);
+      outline: none;
+      flex: 1;
+      min-width: 120px;
+    }
+    .controls select:focus,
+    .controls input:focus {
+      border-color: var(--ink);
+    }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 9px 18px;
+      border: 2px solid;
+      cursor: pointer;
+      transition: all .15s;
+      letter-spacing: .5px;
+    }
+    .btn-json { border-color: var(--ink); background: var(--ink); color: var(--cream); }
+    .btn-json:hover { background: var(--red); border-color: var(--red); }
+    .btn-xml  { border-color: var(--blue); background: var(--blue); color: white; }
+    .btn-xml:hover { background: #0d2044; border-color: #0d2044; }
+    .btn-xsd  { border-color: var(--green); background: var(--green); color: white; }
+    .btn-xsd:hover { background: #0e3d22; border-color: #0e3d22; }
+
+    /* ── Response Viewer ── */
+    .response-area {
+      margin-top: 16px;
+      position: relative;
+    }
+    .response-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #2a2520;
+      padding: 8px 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #b0a898;
+    }
+    .status-ok   { color: #6bcb77; font-weight: 600; }
+    .status-err  { color: #ff6b6b; font-weight: 600; }
+    .response-code {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 20px;
+      max-height: 420px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .copy-btn {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      padding: 4px 12px;
+      background: transparent;
+      border: 1px solid #5a5048;
+      color: #b0a898;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #3a3028; }
+
+    /* ── Endpoints Table ── */
+    .endpoint-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 32px;
+    }
+    .endpoint-table th {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 2px solid var(--ink);
+      padding: 8px 12px;
+      text-align: left;
+      background: var(--ink);
+      color: var(--cream);
+    }
+    .endpoint-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .endpoint-table tr:hover td { background: #ede7d9; }
+    .method {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      background: var(--green);
+      color: white;
+    }
+    .path {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--blue);
+    }
+    .format-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      padding: 1px 6px;
+      border: 1px solid;
+      display: inline-block;
+    }
+    .tag-json { border-color: var(--ink); color: var(--ink); }
+    .tag-xml  { border-color: var(--blue); color: var(--blue); }
+    .tag-xsd  { border-color: var(--green); color: var(--green); }
+
+    .clickable-path {
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .clickable-path:hover { color: var(--red); }
+
+    /* ── Sidebar ── */
+    .sidebar { position: sticky; top: 24px; }
+
+    .info-card {
+      background: var(--cream);
+      border: 2px solid var(--ink);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .info-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-card p, .info-card li {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--gray);
+    }
+    .info-card ul { padding-left: 16px; }
+    .info-card li { margin-bottom: 4px; }
+    .info-card code {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      background: #e8dfd0;
+      padding: 1px 5px;
+      color: var(--ink);
+    }
+
+    .news-preview {
+      background: var(--cream);
+      border: 2px solid var(--ink);
+      padding: 24px;
+    }
+    .news-preview h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .news-item:last-child { border-bottom: none; }
+    .news-item-title {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .news-item-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--gray);
+      display: flex;
+      gap: 10px;
+    }
+    .news-item-cat {
+      font-size: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      padding: 1px 6px;
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    /* ── XSD Section ── */
+    .xsd-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.65;
+      padding: 20px;
+      overflow-x: auto;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .xsd-kw  { color: #7ec8e3; }
+    .xsd-attr{ color: #f0a35c; }
+    .xsd-val { color: #a8d8a8; }
+    .xsd-cmt { color: #7a7060; font-style: italic; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--gray);
+      border-top: 2px solid var(--ink);
+      background: var(--cream);
+      margin-top: 40px;
+    }
+
+    /* ── Loading ── */
+    .loading { color: #b0a898; font-style: italic; }
+
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; }
+      .masthead-inner { flex-direction: column; align-items: flex-start; }
+      .sidebar { position: static; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── MASTHEAD ── -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div>
+      <div class="masthead-title">GAZETE <span>HACETTEPE</span></div>
+      <div class="masthead-title" style="font-size:clamp(14px,2.5vw,22px); font-weight:400; margin-top:4px; color:#b0a898;">
+        Haber Web Servisi &amp; API
+      </div>
+      <div class="masthead-sub">BBY464 — Semantik Bilgi Yönetimi &nbsp;|&nbsp; XML &amp; Web Servisi Ödevi</div>
+    </div>
+    <div class="masthead-badge">v1.0 &nbsp;·&nbsp; 2026</div>
+  </div>
+</header>
+
+<div class="container">
+  <main>
+
+    <!-- ── TRY IT ── -->
+    <div class="try-box">
+      <h3>Servisi Dene</h3>
+      <div class="controls">
+        <select id="ctrl-format">
+          <option value="json">JSON</option>
+          <option value="xml">XML</option>
+        </select>
+        <input id="ctrl-q" type="text" placeholder="Arama... (örn: TÜBİTAK)">
+        <select id="ctrl-cat">
+          <option value="">— Tüm kategoriler —</option>
+          <option value="arastirma">Araştırma</option>
+          <option value="yonetim">Yönetim</option>
+          <option value="ogrenci">Öğrenci</option>
+          <option value="spor">Spor</option>
+          <option value="odul">Ödül</option>
+          <option value="uluslararasi">Uluslararası</option>
+        </select>
+        <input id="ctrl-limit" type="number" value="5" min="1" max="50" style="max-width:80px" placeholder="limit">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-json" onclick="callApi('list')">▶ Haber Listesi</button>
+        <button class="btn btn-xml"  onclick="callApi('list-xml')">▶ XML Listesi</button>
+        <button class="btn btn-xsd"  onclick="callApi('schema')">▶ XSD Şema</button>
+      </div>
+
+      <div class="response-area" id="response-area" style="display:none">
+        <div class="response-meta">
+          <span id="resp-url" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%"></span>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span id="resp-status"></span>
+            <button class="copy-btn" onclick="copyResponse()">KOPYALA</button>
+          </div>
+        </div>
+        <pre class="response-code" id="resp-body"></pre>
+      </div>
+    </div>
+
+    <!-- ── ENDPOINTS ── -->
+    <div class="section-rule"><h2>Endpoint'ler</h2></div>
+    <table class="endpoint-table">
+      <thead>
+        <tr>
+          <th>Metot</th>
+          <th>URL</th>
+          <th>Format</th>
+          <th>Açıklama</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path clickable-path" onclick="fillAndCall('/api/news')">/api/news</span></td>
+          <td><span class="format-tag tag-json">JSON</span></td>
+          <td>Tüm haberler (JSON)</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path clickable-path" onclick="fillAndCall('/api/news.xml')">/api/news.xml</span></td>
+          <td><span class="format-tag tag-xml">XML</span></td>
+          <td>Tüm haberler (XML Web Servisi)</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path">/api/news?q=tubitak</span></td>
+          <td><span class="format-tag tag-json">JSON</span></td>
+          <td>Anahtar kelime ile arama</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path">/api/news?category=arastirma</span></td>
+          <td><span class="format-tag tag-json">JSON</span></td>
+          <td>Kategoriye göre filtrele</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path">/api/news.xml?category=spor</span></td>
+          <td><span class="format-tag tag-xml">XML</span></td>
+          <td>XML + kategori filtresi</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path">/api/news/{id}</span></td>
+          <td><span class="format-tag tag-json">JSON</span></td>
+          <td>Tek haber detayı (JSON)</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path">/api/news/{id}.xml</span></td>
+          <td><span class="format-tag tag-xml">XML</span></td>
+          <td>Tek haber detayı (XML)</td>
+        </tr>
+        <tr>
+          <td><span class="method">GET</span></td>
+          <td><span class="path clickable-path" onclick="fillAndCall('/api/schema.xsd')">/api/schema.xsd</span></td>
+          <td><span class="format-tag tag-xsd">XSD</span></td>
+          <td>XML Şema Tanımı (XSD)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── XSD SCHEMA ── -->
+    <div class="section-rule" style="margin-top:36px"><h2>XML Şema (XSD)</h2></div>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:16px">
+      Servisin döndürdüğü XML belgesi aşağıdaki XSD şemasına uygundur. Şema,
+      her haber için zorunlu alanları ve <code>KategoriType</code> kısıtlamasını tanımlar.
+    </p>
+    <div class="xsd-box"><span class="xsd-cmt">&lt;!-- Gazete Hacettepe Haber XML Şeması --&gt;</span>
+<span class="xsd-kw">&lt;xs:schema</span> <span class="xsd-attr">xmlns:xs</span>=<span class="xsd-val">"http://www.w3.org/2001/XMLSchema"</span><span class="xsd-kw">&gt;</span>
+
+  <span class="xsd-cmt">&lt;!-- Haber listesi kök elementi --&gt;</span>
+  <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"haberler"</span><span class="xsd-kw">&gt;</span>
+    <span class="xsd-kw">&lt;xs:complexType&gt;</span>
+      <span class="xsd-kw">&lt;xs:sequence&gt;</span>
+        <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"haber"</span> <span class="xsd-attr">type</span>=<span class="xsd-val">"HaberType"</span>
+                    <span class="xsd-attr">minOccurs</span>=<span class="xsd-val">"0"</span> <span class="xsd-attr">maxOccurs</span>=<span class="xsd-val">"unbounded"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;/xs:sequence&gt;</span>
+      <span class="xsd-kw">&lt;xs:attribute</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"kaynak"</span> <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:anyURI"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:attribute</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"toplam"</span> <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:nonNegativeInteger"</span><span class="xsd-kw">/&gt;</span>
+    <span class="xsd-kw">&lt;/xs:complexType&gt;</span>
+  <span class="xsd-kw">&lt;/xs:element&gt;</span>
+
+  <span class="xsd-cmt">&lt;!-- Haber veri tipi --&gt;</span>
+  <span class="xsd-kw">&lt;xs:complexType</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"HaberType"</span><span class="xsd-kw">&gt;</span>
+    <span class="xsd-kw">&lt;xs:sequence&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"id"</span>         <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:positiveInteger"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"baslik"</span>    <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:string"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"ozet"</span>      <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:string"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"yazar"</span>     <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:string"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"tarih"</span>     <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:string"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"gorsel_url"</span> <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:anyURI"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"haber_url"</span>  <span class="xsd-attr">type</span>=<span class="xsd-val">"xs:anyURI"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:element</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"kategori"</span>  <span class="xsd-attr">type</span>=<span class="xsd-val">"KategoriType"</span><span class="xsd-kw">/&gt;</span>
+    <span class="xsd-kw">&lt;/xs:sequence&gt;</span>
+  <span class="xsd-kw">&lt;/xs:complexType&gt;</span>
+
+  <span class="xsd-cmt">&lt;!-- KategoriType kısıtlaması --&gt;</span>
+  <span class="xsd-kw">&lt;xs:simpleType</span> <span class="xsd-attr">name</span>=<span class="xsd-val">"KategoriType"</span><span class="xsd-kw">&gt;</span>
+    <span class="xsd-kw">&lt;xs:restriction</span> <span class="xsd-attr">base</span>=<span class="xsd-val">"xs:string"</span><span class="xsd-kw">&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"arastirma"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"yonetim"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"ogrenci"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"spor"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"odul"</span><span class="xsd-kw">/&gt;</span>
+      <span class="xsd-kw">&lt;xs:enumeration</span> <span class="xsd-attr">value</span>=<span class="xsd-val">"uluslararasi"</span><span class="xsd-kw">/&gt;</span>
+    <span class="xsd-kw">&lt;/xs:restriction&gt;</span>
+  <span class="xsd-kw">&lt;/xs:simpleType&gt;</span>
+
+<span class="xsd-kw">&lt;/xs:schema&gt;</span></div>
+
+  </main>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <div class="info-card">
+      <h3>Servis Hakkında</h3>
+      <p>Bu web servisi, <strong>gazete.hacettepe.edu.tr</strong> sitesinden haberleri toplayarak hem <strong>JSON API</strong> hem de <strong>XML Web Servisi</strong> olarak sunar.</p>
+      <br>
+      <ul>
+        <li>Haber başlığı</li>
+        <li>Kısa özet (ilk paragraf)</li>
+        <li>Yazar / kategori</li>
+        <li>Yayın tarihi</li>
+        <li>Görsel URL'si</li>
+        <li>Haberin tam linki</li>
+      </ul>
+      <br>
+      <p><strong>Teknoloji:</strong><br>
+        <code>Python 3</code> + <code>Flask</code><br>
+        <code>BeautifulSoup4</code> (scraper)<br>
+        <code>xml.etree</code> (XML üretimi)
+      </p>
+    </div>
+
+    <div class="info-card">
+      <h3>Örnek Sorgular</h3>
+      <p>Tüm haberler (JSON):</p>
+      <code style="display:block;margin:6px 0 12px;word-break:break-all">/api/news?limit=5</code>
+      <p>TÜBİTAK haberleri:</p>
+      <code style="display:block;margin:6px 0 12px">/api/news?q=TÜBİTAK</code>
+      <p>Araştırma haberleri (XML):</p>
+      <code style="display:block;margin:6px 0 12px;word-break:break-all">/api/news.xml?category=arastirma</code>
+      <p>Haber #419 (JSON):</p>
+      <code style="display:block;margin:6px 0">/api/news/419</code>
+    </div>
+
+    <div class="news-preview">
+      <h3>Son Haberler</h3>
+      <div id="news-list"><div class="loading">Yükleniyor…</div></div>
+    </div>
+
+  </aside>
+</div>
+
+<footer>
+  Gazete Hacettepe Haber Web Servisi &nbsp;·&nbsp;
+  BBY464 Semantik Bilgi Yönetimi &nbsp;·&nbsp;
+  Kaynak: gazete.hacettepe.edu.tr
+</footer>
+
+<script>
+  // ── API çağrısı ──────────────────────────────────────────────────────────
+  const BASE = window.location.origin;
+
+  function buildUrl(mode) {
+    const fmt   = document.getElementById('ctrl-format').value;
+    const q     = document.getElementById('ctrl-q').value.trim();
+    const cat   = document.getElementById('ctrl-cat').value;
+    const limit = document.getElementById('ctrl-limit').value;
+
+    if (mode === 'schema') return `${BASE}/api/schema.xsd`;
+
+    const isXml = (mode === 'list-xml') || fmt === 'xml';
+    let url = isXml ? `${BASE}/api/news.xml` : `${BASE}/api/news`;
+
+    const params = [];
+    if (q) params.push(`q=${encodeURIComponent(q)}`);
+    if (cat) params.push(`category=${cat}`);
+    if (limit && limit !== '10') params.push(`limit=${limit}`);
+    if (params.length) url += '?' + params.join('&');
+    return url;
+  }
+
+  async function callApi(mode) {
+    const url = buildUrl(mode);
+    document.getElementById('response-area').style.display = 'block';
+    document.getElementById('resp-url').textContent = url;
+    document.getElementById('resp-status').className = '';
+    document.getElementById('resp-status').textContent = '…';
+    document.getElementById('resp-body').textContent = 'İstek gönderiliyor…';
+
+    try {
+      const res = await fetch(url);
+      const ct  = res.headers.get('content-type') || '';
+      let body;
+      if (ct.includes('xml')) {
+        body = await res.text();
+      } else {
+        const data = await res.json();
+        body = JSON.stringify(data, null, 2);
+      }
+      document.getElementById('resp-status').textContent = `HTTP ${res.status} OK`;
+      document.getElementById('resp-status').className = 'status-ok';
+      document.getElementById('resp-body').textContent = body;
+    } catch (e) {
+      document.getElementById('resp-status').textContent = 'HATA';
+      document.getElementById('resp-status').className = 'status-err';
+      document.getElementById('resp-body').textContent = e.toString();
+    }
+  }
+
+  function fillAndCall(path) {
+    window.open(path, '_blank');
+  }
+
+  function copyResponse() {
+    const text = document.getElementById('resp-body').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ KOPYALANDI';
+      setTimeout(() => btn.textContent = 'KOPYALA', 1500);
+    });
+  }
+
+  // ── Sidebar haber listesi ────────────────────────────────────────────────
+  async function loadNewsSidebar() {
+    try {
+      const res  = await fetch(`${BASE}/api/news?limit=5`);
+      const data = await res.json();
+      const list = document.getElementById('news-list');
+      list.innerHTML = '';
+      data.haberler.forEach(h => {
+        const div = document.createElement('div');
+        div.className = 'news-item';
+        div.innerHTML = `
+          <div class="news-item-title">${h.title}</div>
+          <div class="news-item-meta">
+            <span class="news-item-cat">${h.category}</span>
+            <span>${h.date || '—'}</span>
+          </div>`;
+        list.appendChild(div);
+      });
+    } catch (e) {
+      document.getElementById('news-list').innerHTML = '<div class="loading">Yüklenemedi.</div>';
+    }
+  }
+
+  loadNewsSidebar();
+</script>
+</body>
+</html>
